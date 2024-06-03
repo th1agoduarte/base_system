@@ -1,0 +1,58 @@
+# Node modules
+/node_modules
+/frontend/node_modules
+
+# Log files
+/logs
+/frontend/logs
+*.log
+
+# Runtime data
+/tmp
+/backend/storage/logs
+/backend/storage/framework/cache
+/backend/storage/framework/sessions
+/backend/storage/framework/views
+
+# Composer dependencies
+/vendor
+/backend/vendor
+
+# Laravel specific
+/backend/.env
+/backend/.phpunit.result.cache
+/backend/public/storage
+/backend/storage/app/public
+/backend/storage/debugbar
+
+# Docker
+/docker-compose.override.yml
+/.env
+/backend/.env
+/frontend/.env
+
+# Editor files
+*.swp
+*~
+.project
+.idea
+.vscode
+*.sublime-workspace
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# NPM debug log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Parcel cache (if using Parcel bundler)
+/.cache
+
+# Output of build process
+/dist
+/build
+/frontend/build
+/frontend/dist

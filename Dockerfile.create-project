@@ -1,0 +1,26 @@
+FROM php:8.3-cli
+
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    unzip \
+    nodejs \
+    npm
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Install the latest Node.js
+RUN curl -fsSL https://deb.nodesource.com/setup_current.x | bash - && \
+    apt-get install -y nodejs
+
+ARG user=laravel
+ARG uid=1000
+RUN useradd -G www-data,root -u $uid -d /home/$user $user
+RUN mkdir -p /home/$user/.composer && \
+    chown -R $user:$user /home/$user
+
+USER $user
+
+WORKDIR /app

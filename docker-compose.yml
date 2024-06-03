@@ -1,0 +1,154 @@
+services:
+  backend:
+    build:
+      context: ./backend/.docker
+      dockerfile: Dockerfile
+    container_name: laravel_app
+    restart: unless-stopped
+    tty: true
+    environment:
+      SERVICE_NAME: backend
+      SERVICE_TAGS: dev
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: laravel
+      DB_USERNAME: root
+      DB_PASSWORD: secret
+      REDIS_HOST: redis
+      MAIL_HOST: mailpit
+      MAIL_PORT: 1025
+      S3_ENDPOINT: http://minio:9000
+      S3_KEY: minioadmin
+      S3_SECRET: minioadmin
+      S3_REGION: us-east-1
+      S3_BUCKET: mybucket
+    working_dir: /var/www
+    volumes:
+      - ./backend:/var/www
+      - ./php/php.ini:/usr/local/etc/php/php.ini
+      - ./backend/.docker/entrypoint.sh:/var/www/entrypoint.sh
+    entrypoint: ["/var/www/entrypoint.sh"]
+    depends_on:
+            - "mysql"
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./frontend/.docker
+      dockerfile: Dockerfile
+    container_name: react_app
+    restart: unless-stopped
+    tty: true
+    stdin_open: true
+    volumes:
+      - ./frontend:/usr/src/app
+      - ./frontend/.docker/entrypoint.sh:/usr/src/app/entrypoint.sh
+    entrypoint: ["/usr/src/app/entrypoint.sh"]
+    networks:
+      - app-network
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx_proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/:/etc/nginx/conf.d/
+    networks:
+      - app-network
+
+  mysql:
+    image: mysql:5.7
+    container_name: mysql
+    restart: unless-stopped
+    environment:
+            - MYSQL_ROOT_PASSWORD=root
+            - MYSQL_DATABASE=laravel
+            - TZ=America/Sao_Paulo
+            - MYSQL_INIT_TZ=America/Sao_Paulo
+    ports:
+      - "3308:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - app-network
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    restart: unless-stopped
+    networks:
+      - app-network
+
+#  kafka:
+#    image: wurstmeister/kafka:2.13-2.8.0
+#    container_name: kafka
+#    restart: unless-stopped
+#    environment:
+#      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+#      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+#    ports:
+#      - "9092:9092"
+#    networks:
+#      - app-network
+
+#  zookeeper:
+#    image: wurstmeister/zookeeper:3.4.6
+#    container_name: zookeeper
+#    restart: unless-stopped
+#    ports:
+#      - "2181:2181"
+#    networks:
+#      - app-network
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: mailpit
+    restart: unless-stopped
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - app-network
+
+  minio:
+    image: minio/minio
+    container_name: minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+    networks:
+      - app-network
+
+#  akhq:
+#    image: tchiotludo/akhq
+#    container_name: akhq
+#    restart: unless-stopped
+#    environment:
+#      AKHQ_CONFIGURATION: |
+#        akhq:
+#          connections:
+#            docker-kafka-server:
+#              properties:
+#                bootstrap.servers: "kafka:9092"
+#    ports:
+#      - "8080:8080"
+#    networks:
+#      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
+  minio-data:

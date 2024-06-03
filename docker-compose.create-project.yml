@@ -1,0 +1,8 @@
+services:
+  create-project:
+    build:
+      context: .
+      dockerfile: Dockerfile.create-project
+    volumes:
+      - ./backend:/app/backend
+      - ./frontend:/app/frontend
